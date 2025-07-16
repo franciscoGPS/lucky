@@ -5,11 +5,11 @@ private class AssetManifestBuilder
   property retries
   @retries : Int32 = 0
   @manifest_path : String
-  @use_vite : Bool = false
+  @build_system : String = "vite"
   @max_retries : Int32
   @retry_after : Float64
 
-  def initialize(@manifest_path : String = "./public/mix-manifest.json", @use_vite : Bool = false)
+  def initialize(@manifest_path : String = "./public/mix-manifest.json", @build_system : String = "vite")
     @manifest_path = File.expand_path(@manifest_path)
 
     # These values can be configured at compile time via environment variables:
@@ -21,8 +21,11 @@ private class AssetManifestBuilder
 
   def build_with_retry
     if manifest_exists?
-      if @use_vite
+      case @build_system
+      when "vite"
         build_with_vite_manifest
+      when "bun"
+        build_with_bun_manifest
       else
         build_with_mix_manifest
       end
@@ -80,6 +83,58 @@ private class AssetManifestBuilder
           clean_key = key.starts_with?("src/") ? key[4..] : key
           puts %({% ::Lucky::AssetHelpers::ASSET_MANIFEST["#{clean_key}"] = "/#{value["file"].as_s}" %})
         end
+      end
+    end
+  end
+
+  private def build_with_bun_manifest
+    manifest_file = File.read(@manifest_path)
+    manifest = JSON.parse(manifest_file)
+
+    # Bun's manifest format can vary, but typically follows a structure similar to:
+    # {
+    #   "inputs": {
+    #     "src/app.ts": {
+    #       "output": "app-[hash].js",
+    #       "imports": []
+    #     }
+    #   },
+    #   "outputs": {
+    #     "app-[hash].js": {
+    #       "input": "src/app.ts"
+    #     }
+    #   }
+    # }
+
+    if manifest.as_h.has_key?("inputs")
+      # Handle Bun's inputs format
+      inputs = manifest["inputs"].as_h
+      inputs.each do |key, value|
+        # Remove "src/" prefix to match Lucky's convention
+        clean_key = key.starts_with?("src/") ? key[4..] : key
+
+        if value.as_h.has_key?("output")
+          output_path = value["output"].as_s
+          puts %({% ::Lucky::AssetHelpers::ASSET_MANIFEST["#{clean_key}"] = "/#{output_path}" %})
+        end
+      end
+    elsif manifest.as_h.has_key?("outputs")
+      # Handle Bun's outputs format
+      outputs = manifest["outputs"].as_h
+      outputs.each do |output_file, value|
+        if value.as_h.has_key?("input")
+          input_path = value["input"].as_s
+          # Remove "src/" prefix to match Lucky's convention
+          clean_key = input_path.starts_with?("src/") ? input_path[4..] : input_path
+          puts %({% ::Lucky::AssetHelpers::ASSET_MANIFEST["#{clean_key}"] = "/#{output_file}" %})
+        end
+      end
+    else
+      # Fallback: treat as simple key-value mapping like mix-manifest
+      manifest.as_h.each do |key, value|
+        # "/js/app.js" => "js/app.js",
+        key = key.gsub(/^\//, "").gsub(/^assets\//, "")
+        puts %({% ::Lucky::AssetHelpers::ASSET_MANIFEST["#{key}"] = "#{value.as_s}" %})
       end
     end
   end

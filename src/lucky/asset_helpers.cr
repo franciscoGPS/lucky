@@ -16,7 +16,14 @@ module Lucky::AssetHelpers
   # EXPERIMENTAL: This feature is experimental. Use this to test
   # vite integration with Lucky
   macro load_manifest(manifest_file, use_vite)
-    {{ run "../run_macros/generate_asset_helpers", manifest_file, use_vite }}
+    {{ run "../run_macros/generate_asset_helpers", manifest_file, "vite" }}
+    {% CONFIG[:has_loaded_manifest] = true %}
+  end
+
+  # EXPERIMENTAL: This feature is experimental. Use this to test
+  # bun integration with Lucky
+  macro load_manifest(manifest_file, use_bun)
+    {{ run "../run_macros/generate_asset_helpers", manifest_file, "bun" }}
     {% CONFIG[:has_loaded_manifest] = true %}
   end
 
@@ -25,9 +32,11 @@ module Lucky::AssetHelpers
   macro load_manifest_from_build_system
     {% if @type.has_constant?("ASSET_BUILD_SYSTEM_TYPE") %}
       {% if @type.constant("ASSET_BUILD_SYSTEM_TYPE") == "vite" %}
-        {{ run "../run_macros/generate_asset_helpers", "./public/.vite/manifest.json", "true" }}
+        {{ run "../run_macros/generate_asset_helpers", "./public/.vite/manifest.json", "vite" }}
+      {% elsif @type.constant("ASSET_BUILD_SYSTEM_TYPE") == "bun" %}
+        {{ run "../run_macros/generate_asset_helpers", "./public/bun-manifest.json", "bun" }}
       {% else %}
-        {{ run "../run_macros/generate_asset_helpers", "./public/mix-manifest.json", "false" }}
+        {{ run "../run_macros/generate_asset_helpers", "./public/mix-manifest.json", "mix" }}
       {% end %}
     {% else %}
       {{ run "../run_macros/generate_asset_helpers" }}

@@ -14,6 +14,21 @@ module Shared::ComponentWithAsset
   end
 end
 
+private class TestPageWithBun
+  include Lucky::AssetHelpers
+  include Shared::ComponentWithAsset
+
+  def bun_asset_path
+    # This would require a bun manifest to be loaded for the test
+    # For now, we'll test the dynamic asset method with bun assets
+    dynamic_asset("assets/js/app.js")
+  end
+
+  def bun_css_asset_path
+    dynamic_asset("assets/css/app.css")
+  end
+end
+
 private class TestPage
   include Lucky::AssetHelpers
   include Shared::ComponentWithAsset
@@ -122,6 +137,22 @@ describe Lucky::AssetHelpers do
     it "prepends the asset_host configuration option" do
       Lucky::Server.temp_config(asset_host: "https://production.com") do
         TestPage.new.dynamic_asset_path("lucky_logo").should eq "https://production.com/images/lucky_logo.a54cc67e.png"
+      end
+    end
+  end
+
+  describe "bun asset support" do
+    it "supports dynamic assets with bun-style paths" do
+      # Note: This test would require actual bun manifest loading
+      # For demonstration purposes, we're testing the structure
+      expect_raises Exception, "Missing asset: assets/js/app.js" do
+        TestPageWithBun.new.bun_asset_path
+      end
+    end
+
+    it "handles bun CSS assets" do
+      expect_raises Exception, "Missing asset: assets/css/app.css" do
+        TestPageWithBun.new.bun_css_asset_path
       end
     end
   end

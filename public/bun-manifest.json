@@ -1,0 +1,30 @@
+{
+  "inputs": {
+    "src/assets/js/app.ts": {
+      "output": "assets/js/app-a54cc67e.js",
+      "imports": []
+    },
+    "src/assets/css/app.scss": {
+      "output": "assets/css/app-b65dd78f.css",
+      "imports": []
+    },
+    "src/images/logo.png": {
+      "output": "images/logo-c76ee89g.png",
+      "imports": []
+    }
+  },
+  "outputs": {
+    "assets/js/app-a54cc67e.js": {
+      "input": "src/assets/js/app.ts",
+      "size": 15432
+    },
+    "assets/css/app-b65dd78f.css": {
+      "input": "src/assets/css/app.scss",
+      "size": 8921
+    },
+    "images/logo-c76ee89g.png": {
+      "input": "src/images/logo.png",
+      "size": 4567
+    }
+  }
+}
