@@ -23,7 +23,7 @@ module Lucky::AssetHelpers
   # EXPERIMENTAL: This feature is experimental. Use this to test
   # bun integration with Lucky
   macro load_manifest(manifest_file, use_bun)
-    {{ run "../run_macros/generate_asset_helpers", manifest_file, "bun" }}
+    {{ run "../run_macros/generate_asset_helpers", manifest_file, "vite" }}
     {% CONFIG[:has_loaded_manifest] = true %}
   end
 
@@ -33,8 +33,6 @@ module Lucky::AssetHelpers
     {% if @type.has_constant?("ASSET_BUILD_SYSTEM_TYPE") %}
       {% if @type.constant("ASSET_BUILD_SYSTEM_TYPE") == "vite" %}
         {{ run "../run_macros/generate_asset_helpers", "./public/.vite/manifest.json", "vite" }}
-      {% elsif @type.constant("ASSET_BUILD_SYSTEM_TYPE") == "bun" %}
-        {{ run "../run_macros/generate_asset_helpers", "./public/bun-manifest.json", "bun" }}
       {% else %}
         {{ run "../run_macros/generate_asset_helpers", "./public/mix-manifest.json", "mix" }}
       {% end %}
