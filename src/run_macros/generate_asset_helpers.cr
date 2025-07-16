@@ -151,12 +151,12 @@ end
 
 begin
   manifest_path = ARGV[0]
-  use_vite = ARGV[1]? == "true"
+  build_system = ARGV[1]? == "vite"
 
   builder = if manifest_path.blank?
               AssetManifestBuilder.new
             else
-              AssetManifestBuilder.new(manifest_path, use_vite)
+              AssetManifestBuilder.new(manifest_path, build_system)
             end
 
   builder.build_with_retry
